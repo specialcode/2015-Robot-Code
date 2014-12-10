@@ -1,8 +1,9 @@
 /*
-Useful functions for using motor enconders. Input in centimeters is APPROXIMATE!
+Useful functions for using motor enconders and gyro sensors. Input in centimeters is APPROXIMATE! Degrees are fairly precise.
 */
 const int rotation = 1440;
 const float wheelCircumference = 31.902;
+int offset = 598;
 
 //Converts cenimeters to encoder units
 int centimetersToUnits(int centimeters)
@@ -64,7 +65,7 @@ void runTwoMotors(tMotor motor1, tMotor motor2, int power, int units)
 //Runs 2 motors for a certain distance in CM at a certin power
 void runTwoMotorsByCm(tMotor motor1, tMotor motor2, int power, int cm)
 {
-	runTwoMotors(motor1, motor2, power, centimetersToUnits(cm));	
+	runTwoMotors(motor1, motor2, power, centimetersToUnits(cm));
 }
 
 //Runs 4 motors for certain number of encoder units at a certin power
@@ -169,4 +170,44 @@ void runFourMotorsNoReset(tMotor motor1, tMotor motor2, tMotor motor3, tMotor mo
 void runFourMotorsByCmNoReset(tMotor motor1, tMotor motor2, tMotor motor3, tMotor motor4, int power, int cm)
 {
 	runFourMotorsNoReset(motor1, motor2, motor3, motor4, power, centimetersToUnits(cm));
+}
+
+//turn the robot in a number of degrees
+void turnDegrees(tSensors gyro, tMotor side, int degrees, int power)
+{
+	motor[side] = power;
+	while(degrees > 0)
+	{
+		wait1Msec(1000);
+		int rate = SensorValue(gyro) - offset;
+		degrees -= rate;			
+	}
+	motor[side] = 0;
+}
+
+//turn the robot in a number of degrees using both motors. The second motor rotates backward.
+void turnDegrees(tSensors gyro, tMotor side, tMotor otherSide, int degrees, int power)
+{
+	motor[side] = power;
+	motor[otherSide] = -power;
+	while(degrees > 0)
+	{
+		wait1Msec(1000);
+		int rate = SensorValue(gyro) - offset;
+		degrees -= rate;			
+	}
+	motor[side] = 0;
+	motor[otherSide] = 0;
+}
+
+//Calibrate the gyro sensor by averaging reading for a turn rate of 0.
+void calibrateGyro(tSensors gyro)
+{
+	long gyroValues[5];
+	int total = 0;
+	for(int i = 0; i < 5; i++)
+	{
+		total += SensorValue(gyro);
+	}
+	offset = total / 5;
 }
