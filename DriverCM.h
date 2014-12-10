@@ -180,7 +180,7 @@ void turnDegrees(tSensors gyro, tMotor side, int degrees, int power)
 	{
 		wait1Msec(1000);
 		int rate = SensorValue(gyro) - offset;
-		degrees -= rate;			
+		degrees -= abs(rate);			
 	}
 	motor[side] = 0;
 }
@@ -194,7 +194,7 @@ void turnDegrees(tSensors gyro, tMotor side, tMotor otherSide, int degrees, int 
 	{
 		wait1Msec(1000);
 		int rate = SensorValue(gyro) - offset;
-		degrees -= rate;			
+		degrees -= abs(rate);			
 	}
 	motor[side] = 0;
 	motor[otherSide] = 0;
