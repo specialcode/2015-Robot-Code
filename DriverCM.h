@@ -1,5 +1,5 @@
 /*
-Useful functions for using motor enconders and gyro sensors. Input in centimeters is APPROXIMATE! Degrees are fairly precise.
+Useful functions for using motor enconders and gyro sensors. Input in centimeters is APPROXIMATE!
 */
 const int rotation = 1440;
 const float wheelCircumference = 31.902;
@@ -180,7 +180,7 @@ void turnDegrees(tSensors gyro, tMotor side, int degrees, int power)
 	{
 		wait1Msec(1000);
 		int rate = SensorValue(gyro) - offset;
-		degrees -= abs(rate);			
+		degrees -= abs(rate);
 	}
 	motor[side] = 0;
 }
@@ -194,10 +194,64 @@ void turnDegrees(tSensors gyro, tMotor side, tMotor otherSide, int degrees, int 
 	{
 		wait1Msec(1000);
 		int rate = SensorValue(gyro) - offset;
-		degrees -= abs(rate);			
+		degrees -= abs(rate);
 	}
 	motor[side] = 0;
 	motor[otherSide] = 0;
+}
+
+//turn the robot in a number of degrees using two motors on the same side
+void turnDegreesSameSide(tSensors gyro, tMotor side, tMotor sideBack, int degrees, int power)
+{
+	motor[side] = power;
+	motor[sideBack] = power;
+	while(degrees > 0)
+	{
+		wait1Msec(1000);
+		int rate = SensorValue(gyro) - offset;
+		degrees -= abs(rate);
+	}
+	motor[side] = 0;
+	motor[sideBack] = 0;
+}
+
+//turn the robot in a number of degrees using four motors.
+void turnDegrees(tSensors gyro, tMotor side, tMotor sideBack, tMotor otherSide, tMotor otherSideBack, int degrees, int power)
+{
+	motor[side] = power;
+	motor[otherSide] = -power;
+	motor[sideBack] = power;
+	motor[otherSideBack] = -power;
+	while(degrees > 0)
+	{
+		wait1Msec(1000);
+		int rate = SensorValue(gyro) - offset;
+		degrees -= abs(rate);
+	}
+	motor[side] = 0;
+	motor[otherSide] = 0;
+	motor[sideBack] = 0;
+	motor[otherSideBack] = 0;
+}
+
+//Drive foward stablized by the gyro sensor. Gyro sensor must point foward.
+void gyroDriveFoward(tSensors gyro, tMotor left, tMotor right, int defaultPower, long msecs)
+{
+	motor[left] = defaultPower;
+	motor[right] = defaultPower;
+	while(msecs > 0)
+	{
+		wait1Msec(1);
+		msecs--;
+		if(SensorValue(gyro) > offset)//turning right
+		{
+			motor[left] = motor[left] + 1;
+		}
+		if(SensorValue(gyro) < offset)//turning left
+		{
+			motor[right] = motor[right] + 1;
+		}
+	}
 }
 
 //Calibrate the gyro sensor by averaging reading for a turn rate of 0.
