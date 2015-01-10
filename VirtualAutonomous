@@ -1,0 +1,121 @@
+#pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTMotor,  none)
+#pragma config(Sensor, S2,     IRSeeker,       sensorHiTechnicIRSeeker1200)
+#pragma config(Sensor, S3,     light,          sensorLightActive)
+#pragma config(Sensor, S4,     sonar,          sensorSONAR)
+#pragma config(Motor,  motorA,          gripperMotor,  tmotorNXT, PIDControl, encoder)
+#pragma config(Motor,  mtr_S1_C1_1,     frontRightMotor,    tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C1_2,     frontLeftMotor,     tmotorTetrix, openLoop, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C2_1,     armMotor,      tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C2_2,     spinnerMotor,  tmotorTetrix, openLoop, encoder)
+
+#include <VirtualDriverCM.h>
+
+int deafaultPower = 75;
+int turn360 = 256;
+
+
+	bool onRamp()
+	{
+		return true;
+	}
+
+	void rampMode1()
+{
+	runMotorByCm(frontRightMotor, deafaultPower, turn360 / 2 + turn360 / 4);
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 60);
+	runMotorByCm(frontRightMotor, deafaultPower, turn360 / 4);
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 40);
+}
+
+void rampMode2()
+{
+	runMotorByCm(frontLeftMotor, deafaultPower, turn360 / 3.7);
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 50);
+	runMotorByCm(frontLeftMotor, -deafaultPower, turn360 / 3.7);
+}
+
+void rampMode3()
+{
+	runMotorByCm(frontLeftMotor, deafaultPower, turn360 / 6);
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 15);
+	runMotorByCm(frontRightMotor, deafaultPower, turn360 / 8);
+}
+
+	void rampAuto()
+	{
+			//off ramp
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 200);
+	//ball drop
+	runMotorByCm(armMotor, deafaultPower, 20);
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 62);
+	runMotorByCm(gripperMotor, -deafaultPower, 1);
+	runMotorByCm(gripperMotor, deafaultPower, 1);
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, -deafaultPower, 62);
+	runMotorByCm(armMotor, -deafaultPower, 20);
+	//IR beacon
+	runMotorByCm(frontRightMotor, deafaultPower, turn360 / 4);
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 50);
+	runMotorByCm(frontRightMotor, deafaultPower, turn360 / 4);
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 50);
+	runMotorByCm(frontLeftMotor, deafaultPower, turn360 / 4);
+	switch(SensorValue[IRSeeker])
+	{
+		case 5:
+			rampMode2();
+			break;
+
+		case 6:
+			rampMode1();
+			break;
+
+		default:
+			rampMode3();
+			break;
+	}
+}
+
+void groundMode1()//5
+{
+	wait1Msec(10000);
+}
+
+void groundMode2()//4
+{
+	wait1Msec(10000);
+}
+
+void groundMode3()//3
+{
+	wait1Msec(10000);
+}
+
+void groundAuto()
+{
+	runTwoMotorsByCm(frontRightMotor, frontLeftMotor, deafaultPower, 100);
+		switch(SensorValue[IRSeeker])
+	{
+		case 5:
+			groundMode1();
+			break;
+
+		case 4:
+			groundMode2();
+			break;
+
+		default:
+			groundMode3();
+			break;
+	}
+}
+
+	task main()
+	{
+		if(onRamp())
+		{
+			rampAuto();
+		}
+		else
+		{
+			groundAuto();
+		}
+	}
