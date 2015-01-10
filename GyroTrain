@@ -82,6 +82,8 @@ task main()
 			motor[frontRight] = 1;
 			motor[backLeft] = 1;
 			motor[backRight] = 1;	
+			gyroed = false;
+			
 		}
 	}
 }
