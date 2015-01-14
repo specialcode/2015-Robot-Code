@@ -1,9 +1,43 @@
 /*
+	_____						_													 _____	 __	 __
+ |	__ \				 (_)												/ ____| |	 \/	 |
+ | |	| |	 _ __		_	 __		__	 ___	 _ __	 | |			| \	 / |
+ | |	| | | '__| | | \ \ / /	/ _ \ | '__| | |			| |\/| |
+ | |__| | | |		 | |	\ V /	 |	__/ | |		 | |____	| |	 | |
+ |_____/	|_|		 |_|	 \_/		\___| |_|			\_____| |_|	 |_|
+                                                                                                                        
 Useful functions for using motor enconders and gyro sensors. Input in centimeters is APPROXIMATE!
+Written by Ethan Tucker
 */
+
+/*
+ __ __   ____  ____   ____   ____  ____   _        ___   _____
+|  |  | /    ||    \ |    | /    ||    \ | |      /  _] / ___/
+|  |  ||  o  ||  D  ) |  | |  o  ||  o  )| |     /  [_ (   \_ 
+|  |  ||     ||    /  |  | |     ||     || |___ |    _] \__  |
+|  :  ||  _  ||    \  |  | |  _  ||  O  ||     ||   [_  /  \ |
+ \   / |  |  ||  .  \ |  | |  |  ||     ||     ||     | \    |
+  \_/  |__|__||__|\_||____||__|__||_____||_____||_____|  \___|
+                                                              
+*/
+//Number of encoder units in one rotation
 const int rotation = 1440;
+
+//Circumference of a robot wheel
 const float wheelCircumference = 31.902;
+
+//Default gyro sensor offset
 int offset = 598;
+
+/*
+ _____                          _              ______                      _    _                    
+|  ___|                        | |             |  ___|                    | |  (_)                   
+| |__   _ __    ___   ___    __| |  ___  _ __  | |_    _   _  _ __    ___ | |_  _   ___   _ __   ___ 
+|  __| | '_ \  / __| / _ \  / _` | / _ \| '__| |  _|  | | | || '_ \  / __|| __|| | / _ \ | '_ \ / __|
+| |___ | | | || (__ | (_) || (_| ||  __/| |    | |    | |_| || | | || (__ | |_ | || (_) || | | |\__ \
+\____/ |_| |_| \___| \___/  \__,_| \___||_|    \_|     \__,_||_| |_| \___| \__||_| \___/ |_| |_||___/
+                                                                                                                                                                                                          
+*/
 
 //Converts cenimeters to encoder units
 int centimetersToUnits(int centimeters)
@@ -172,6 +206,26 @@ void runFourMotorsByCmNoReset(tMotor motor1, tMotor motor2, tMotor motor3, tMoto
 	runFourMotorsNoReset(motor1, motor2, motor3, motor4, power, centimetersToUnits(cm));
 }
 
+/*
+   ______                                   ______                          __     _                        
+  / ____/   __  __   _____  ____           / ____/  __  __   ____   _____  / /_   (_)  ____    ____    _____
+ / / __    / / / /  / ___/ / __ \         / /_     / / / /  / __ \ / ___/ / __/  / /  / __ \  / __ \  / ___/
+/ /_/ /   / /_/ /  / /    / /_/ /        / __/    / /_/ /  / / / // /__  / /_   / /  / /_/ / / / / / (__  ) 
+\____/    \__, /  /_/     \____/        /_/       \__,_/  /_/ /_/ \___/  \__/  /_/   \____/ /_/ /_/ /____/  
+         /____/                                                                                             
+*/
+
+//Calibrate the gyro sensor by averaging reading for a turn rate of 0.
+void calibrateGyro(tSensors gyro)
+{
+	int total = 0;
+	for(int i = 0; i < 5; i++)
+	{
+		total += SensorValue(gyro);
+	}
+	offset = total / 5;
+}
+
 //turn the robot in a number of degrees
 void turnDegrees(tSensors gyro, tMotor side, int degrees, int power)
 {
@@ -254,14 +308,40 @@ void gyroDriveFoward(tSensors gyro, tMotor left, tMotor right, int defaultPower,
 	}
 }
 
-//Calibrate the gyro sensor by averaging reading for a turn rate of 0.
-void calibrateGyro(tSensors gyro)
+//Combine motor encoders and gyro sensors for:
+/*
+              )    (      (      (         (          )      *      (         )                      (         )       )  
+ (  (      ( /(    )\ )   )\ )   )\ )      )\ )    ( /(    (  `     )\ )   ( /(     (        *   )   )\ )   ( /(    ( /(  
+ )\))(   ' )\())  (()/(  (()/(  (()/(     (()/(    )\())   )\))(   (()/(   )\())    )\     ` )  /(  (()/(   )\())   )\()) 
+((_)()\ ) ((_)\    /(_))  /(_))  /(_))     /(_))  ((_)\   ((_)()\   /(_)) ((_)\  ((((_)(    ( )(_))  /(_)) ((_)\   ((_)\  
+_(())\_)()  ((_)  (_))   (_))   (_))_     (_))_     ((_)  (_()((_) (_))    _((_)  )\ _ )\  (_(_())  (_))     ((_)   _((_) 
+\ \((_)/ / / _ \  | _ \  | |     |   \     |   \   / _ \  |  \/  | |_ _|  | \| |  (_)_\(_) |_   _|  |_ _|   / _ \  | \| | 
+ \ \/\/ / | (_) | |   /  | |__   | |) |    | |) | | (_) | | |\/| |  | |   | .` |   / _ \     | |     | |   | (_) | | .` | 
+  \_/\_/   \___/  |_|_\  |____|  |___/     |___/   \___/  |_|  |_| |___|  |_|\_|  /_/ \_\    |_|    |___|   \___/  |_|\_| 
+                                                                                                                          
+*/
+void runTwoMotorsWithGyro(tMotor left, tMotor right, int power, int units)
 {
-	long gyroValues[5];
-	int total = 0;
-	for(int i = 0; i < 5; i++)
+	nMotorEncoder[left] = 0;
+	if(units < 0)
 	{
-		total += SensorValue(gyro);
+		units = -units;
 	}
-	offset = total / 5;
+	motor[left] = power;
+	motor[right] = power;
+	while(abs(nMotorEncoder[left]) < units)
+	{
+		if(SensorValue(gyro) > offset)//turning right
+		{
+			motor[left] = motor[left] + 1;
+		}
+		if(SensorValue(gyro) < offset)//turning left
+		{
+			motor[right] = motor[right] + 1;
+		}
+	}
+	motor[left] = 0;
+	motor[right] = 0;
+	nMotorEncoder[left] = 0;
+	wait1Msec(100);
 }
