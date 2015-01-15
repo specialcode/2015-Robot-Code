@@ -57,6 +57,20 @@ int lastJoyVal = 0; int cycles = 0;/* anti-stall */
 //	Does some gyro stuff; Don't ask
 bool gyroed;
 
+
+//turn the robot in a number of degrees
+void turnDegrees(tSensors gyro, tMotor side, int degrees, int power)
+{
+	motor[side] = power;
+	while(degrees > 0)
+	{
+		wait1Msec(1000);
+		int rate = SensorValue(gyro) - offset;
+		degrees -= abs(rate);
+	}
+	motor[side] = 0;
+}
+
 task main()
 {
 	//	Some kind of gyro sensor calibration
@@ -112,6 +126,12 @@ task main()
 			wait1Msec(100);
 		}
 
+		if(joystick.joy1_TopHat == 0)
+		{
+			motor[right] = 75;
+			motor[left] = 75;
+		}
+		
 		//	Turn on the gyro stabilization, ask Ethan
 		while(joystick.joy1_TopHat == 0)
 		{
@@ -126,7 +146,38 @@ task main()
 			}
 			gyroed = true;
 		}
+		
+		if(joystick.joy1_TopHat == 4)
+		{
+			motor[right] = -75;
+			motor[left] = -75;
+		}
+		
+		//	Turn on the gyro stabilization backwards, ask Ethan
+		while(joystick.joy1_TopHat == 4)
+		{
+			getJoystickSettings(joystick);
+			if(SensorValue(gyro) > offset)	//turning right
+			{
+				motor[right] = motor[right] - 1;
+			}
+			if(SensorValue(gyro) < offset)	//turning left
+			{
+				motor[left] = motor[left] - 1;
+			}
+			gyroed = true;
+		}
 
+		if(joystick.joy1_TopHat == 6)
+		{
+			turnDegrees(gyro, left, 70, 75);
+		}
+		
+		if(joystick.joy1_TopHat == 2)
+		{
+			turnDegrees(gyro, right, 70, 75);
+		}
+		
 		//	Reset gyro stuff
 		if(gyroed)
 		{
@@ -156,4 +207,4 @@ task main()
 		}
 		
 	}//end while loop
-}
+}//end task main
