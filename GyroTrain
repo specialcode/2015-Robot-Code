@@ -1,7 +1,6 @@
 #pragma config(Hubs, S1, HTMotor, HTMotor, HTServo, HTMotor)
 #pragma config(Sensor, S1, , sensorI2CMuxController)
 #pragma config(Sensor, S2, gyro, sensorI2CHiTechnicGyro)
-#pragma config(Sensor, S3, ir, sensorHiTechnicIRSeeker1200)
 #pragma config(Motor, mtr_S1_C1_1, right, tmotorTetrix, openLoop)
 #pragma config(Motor, mtr_S1_C1_2, left, tmotorTetrix, openLoop, reversed)
 #pragma config(Motor, mtr_S1_C2_1, motorF, tmotorTetrix, openLoop)
@@ -21,7 +20,7 @@
 |		 _____ _____  _   _   ___  _____ _   _  ______ _   ______
 |		|____ /  __ \| | | | / _ \|_   _| \ | ||___  /| | |___  /
 |		    / / /  \/| |_| |/ /_\ \ | | |  \| |   / // __)   / /
-|		    \ \ |    		|  _  ||  _  | | | | . ` |  / / \__ \  / /
+|		    \ \ |    |  _  ||  _  | | | | . ` |  / / \__ \  / /
 |		.___/ / \__/\| | | || | | |_| |_| |\  |./ /__(   /./ /___
 |		\____/ \____/\_| |_/\_| |_/\___/\_| \_/\_____/|_| \_____/
 |
@@ -55,10 +54,10 @@
 | Controller buttons
 | ------------------------------------------------------------------------------
 */
-int x = 1; int a = 2; int b = 3; int y = 4; /* Buttons */
-int leftBumper = 5; int rightBumper = 6; /* bumpers */
-int leftTrigger = 7; int rightTrigger = 8; /* triggers */
-int lastJoyVal = 0; int cycles = 0;/* anti-stall */
+const int x = 1, a = 2, b = 3, y = 4; /* Buttons */
+const int leftBumper = 5, rightBumper = 6; /* bumpers */
+const int leftTrigger = 7, rightTrigger = 8; /* triggers */
+int lastJoyVal = 0, cycles = 0;/* anti-stall */
 
 
 //	Does some gyro stuff; Don't ask
@@ -136,9 +135,17 @@ task main()
 
 		if(joy1Btn(3))
 		{
-			
+			if(servo[gripper] == 0)
+			{
+				servo[gripper] = 255;	
+			}
+			else
+			{
+				servo[gripper] = 0;	
+			}
+			wait1Msec(100);
 		}
-		
+
 		if(joystick.joy1_TopHat == 0)
 		{
 			motor[right] = 75;
@@ -221,8 +228,8 @@ task main()
 
 		if (joy1Btn(3))
 		{
-			servo[gripper] == 255 ? 0 : 255;
+			servo[gripper] = 255 ? 0 : 255;
 		}
-		
+
 	}//end while loop
 }//end task main
